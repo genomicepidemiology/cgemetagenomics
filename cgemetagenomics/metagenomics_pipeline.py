@@ -6,6 +6,10 @@ import csv
 from cgemetagenomics import kma
 
 def metagenomics_pipeline(args):
+    #if not os.path.exists('/opt/cge/cge_db'):
+    #    sys.exit('Please install the cge_db. It should be located in /opt/cge/cge_db')
+    #else:
+    #    args.db_dir = '/opt/cge/cge_db'
     os.system('mkdir ' + args.output)
     # Check if kma is installed
     species = load_pathogen_species(args.db_dir + '/pathogen_strains.list')
@@ -43,6 +47,7 @@ def metagenomics_pipeline(args):
 def create_refined_report(phenotype_file, output, bacterial_results, species):
     gene_data = read_tab_separated_file(phenotype_file)
     amr_results = read_tab_separated_file(output + '/amr.res')
+    e_coli_found = any(extract_species(result.get('#Template', '')) == 'Escherichia coli' for result in bacterial_results)
 
     pathogens = []
     non_pathogens = []
@@ -94,7 +99,7 @@ def create_refined_report(phenotype_file, output, bacterial_results, species):
     report += "\n"
 
     # Virulence Factors for Escherichia coli Section
-    if 'Escherichia coli' in species:
+    if e_coli_found:
         virulence_results = read_tab_separated_file(output + '/virulence.res')
         report += "Virulence Factors for Escherichia coli:\n"
         report += "-" * 60 + "\n"
