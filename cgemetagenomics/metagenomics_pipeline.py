@@ -34,7 +34,8 @@ def metagenomics_pipeline(args):
     amr_results = read_tab_separated_file(args.output + "/amr.res")
 
     report = create_refined_report(args.db_dir + '/phenotypes.txt', args.output, bacterial_results, species)
-    print (report)
+    with open(args.output + '/report.txt', 'w') as report_file:
+        report_file.write(report)
 
     #Parse bacterial alignment and output those above a set of thresholds
 
