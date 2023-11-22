@@ -14,11 +14,18 @@ def metagenomics_pipeline(args):
               args.db_dir + '/bac_db/bac_db',
               "-ID 25 -md 1 -ont -1t1 -mem_mode -t 8").run()
 
-    baterial_results = read_tab_separated_file(args.output + "/bacteria_alignment.res")
+    bacterial_results = read_tab_separated_file(args.output + "/bacteria_alignment.res")
 
-    filter_and_print_hits(baterial_results, species)
+    pathogens_found = filter_and_print_hits(bacterial_results, species)
 
-    sys.exit()
+    if 'Escherichia coli' in pathogens_found:
+
+        e_coli_depth = find_max_depth_for_escherichia_coli(bacterial_results)
+        #run virulence finder
+        kma.KMARunner(args.input,
+                      args.output + "/virulence",
+                      args.db_dir + '/virulence_db/virulence_db',
+                      "-ont -md {} -mem_mode -t 8".format(e_coli_depth/2)).run()
 
     kma.KMARunner(args.input,
                   args.output + "/amr",
@@ -27,21 +34,49 @@ def metagenomics_pipeline(args):
 
     amr_results = read_tab_separated_file(args.output + "/amr.res")
 
+    report = create_report(amr_results, bacterial_results, pathogens_found)
+    print (report)
 
     #Parse bacterial alignment and output those above a set of thresholds
 
     return 'isolate_pipeline'
 
+def create_report(amr_results, bacterial_results, pathogens_found):
+    report = "AMR Results:\n"
+    report += "\n".join(str(result) for result in amr_results) + "\n\n"
+
+    report += "Pathogens Found:\n"
+    report += "\n".join(str(pathogen) for pathogen in pathogens_found) + "\n\n"
+
+    non_pathogens = [result for result in bacterial_results if result not in pathogens_found]
+    report += "Non-Pathogens:\n"
+    report += "\n".join(str(non_pathogen) for non_pathogen in non_pathogens)
+
+    return report
+
+def find_max_depth_for_escherichia_coli(bacterial_results):
+    max_depth = 0.0
+
+    for hit in bacterial_results:
+        if 'Escherichia coli' in hit['#Template']:
+            # Convert depth to a float and compare with the current max
+            depth = float(hit['Depth'].strip())
+            if depth > max_depth:
+                max_depth = depth
+
+    return max_depth
+
 def filter_and_print_hits(bacterial_results, species_list):
+    pathogens_found = []
     for hit in bacterial_results:
         # Extract species name from the '#Template' field
         template = hit['#Template']
         species_name = ' '.join(template.split()[1:3])
-        print (species_name)
 
         # Check if the species name is in the list of species
         if species_name in species_list:
-            print (hit, 'found')
+            pathogens_found.append(species_name)
+    return pathogens_found
 
 def load_pathogen_species(strain_file):
     strains = []
