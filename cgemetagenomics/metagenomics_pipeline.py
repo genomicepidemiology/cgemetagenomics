@@ -32,7 +32,7 @@ def metagenomics_pipeline(args):
 def load_pathogen_strains(strain_file):
     strains = []
     with open(strain_file, 'r') as file:
-        for line in f:
+        for line in file:
             line = line.strip().split('\t')
             print (line)
 
