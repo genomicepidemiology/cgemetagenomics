@@ -41,7 +41,10 @@ def metagenomics_pipeline(args):
 
     return 'isolate_pipeline'
 
-def create_refined_report(amr_results, pathogens_found, non_pathogens):
+def create_refined_report(amr_results, bacterial_results, pathogens_found):
+    # Determine non-pathogens by excluding pathogens from all bacterial results
+    non_pathogens = [result for result in bacterial_results if result not in pathogens_found]
+
     report = "Sample Analysis Report\n"
     report += "=" * 60 + "\n"
 
