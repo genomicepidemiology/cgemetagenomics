@@ -45,7 +45,6 @@ def create_refined_report(phenotype_file, output, bacterial_results, species):
     gene_data = read_tab_separated_file(phenotype_file)
     amr_results = read_tab_separated_file(output + '/amr.res')
 
-    # Classify hits as pathogenic or non-pathogenic based on species list
     pathogens = []
     non_pathogens = []
     for result in bacterial_results:
@@ -55,7 +54,6 @@ def create_refined_report(phenotype_file, output, bacterial_results, species):
         else:
             non_pathogens.append(result)
 
-    # Collect phenotypes based on AMR genes found
     phenotypes = set()
     for amr_result in amr_results:
         for gene in gene_data:
@@ -90,7 +88,8 @@ def create_refined_report(phenotype_file, output, bacterial_results, species):
     report += "Expected Phenotypes Based on AMR Genes:\n"
     report += "-" * 60 + "\n"
     if phenotypes:
-        report += ', '.join(phenotypes) + "\n"
+        for phenotype in sorted(phenotypes):
+            report += f"• {phenotype.strip()}\n"
     else:
         report += "No phenotypes expected based on AMR genes.\n"
     report += "\n"
@@ -101,11 +100,13 @@ def create_refined_report(phenotype_file, output, bacterial_results, species):
         report += "Virulence Factors for Escherichia coli:\n"
         report += "-" * 60 + "\n"
         for result in virulence_results:
-            report += str(result) + "\n"
+            report += f"Template: {result['#Template']}\n"
+            report += f"Identity: {result['Template_Identity'].strip()}, Coverage: {result['Template_Coverage'].strip()}, Depth: {result['Depth'].strip()}\n\n"
     else:
         report += "No virulence factors analysis for Escherichia coli.\n"
 
     return report
+
 def find_max_depth_for_escherichia_coli(bacterial_results):
     max_depth = 0.0
 
