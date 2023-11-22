@@ -1,0 +1,8 @@
+name: cgemetagenomics
+channels:
+  - conda-forge
+  - bioconda
+  - genomicepidemiology
+  - defaults
+dependencies:
+  - kma
