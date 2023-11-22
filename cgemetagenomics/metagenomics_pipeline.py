@@ -31,8 +31,6 @@ def metagenomics_pipeline(args):
                   args.db_dir + '/resfinder_db/resfinder_db',
                   "-ont -md 3 -mem_mode -t 8").run()
 
-    amr_results = read_tab_separated_file(args.output + "/amr.res")
-
     report = create_refined_report(args.db_dir + '/phenotypes.txt', args.output, bacterial_results, species)
     with open(args.output + '/report.txt', 'w') as report_file:
         report_file.write(report)
