@@ -16,16 +16,15 @@ def metagenomics_pipeline(args):
 
     bacterial_results = read_tab_separated_file(args.output + "/bacteria_alignment.res")
 
-    pathogens_found = filter_and_print_hits(bacterial_results, species)
-
-    if 'Escherichia coli' in pathogens_found:
-
-        e_coli_depth = find_max_depth_for_escherichia_coli(bacterial_results)
-        #run virulence finder
-        kma.KMARunner(args.input,
-                      args.output + "/virulence",
-                      args.db_dir + '/virulence_db/virulence_db',
-                      "-ont -md {} -mem_mode -t 8".format(e_coli_depth/2)).run()
+    for hit in bacterial_results:
+        if 'Escherichia coli' in hit['#Template']:
+            e_coli_depth = find_max_depth_for_escherichia_coli(bacterial_results)
+            # run virulence finder
+            kma.KMARunner(args.input,
+                          args.output + "/virulence",
+                          args.db_dir + '/virulence_db/virulence_db',
+                          "-ont -md {} -mem_mode -t 8".format(e_coli_depth / 2)).run()
+            break
 
     kma.KMARunner(args.input,
                   args.output + "/amr",
@@ -41,16 +40,21 @@ def metagenomics_pipeline(args):
 
     return 'isolate_pipeline'
 
-def create_refined_report(amr_file_path, amr_results, bacterial_results, pathogens_found):
-    # Load the TSV file for gene data
-    gene_data = load_tsv(amr_file_path)
 
-    # Determine non-pathogens by excluding pathogens from all bacterial results
-    non_pathogens = [result for result in bacterial_results if result not in pathogens_found]
+def create_refined_report(amr_file_path, bacterial_results, species, virulence_file_path=None):
+    gene_data = read_tab_separated_file(amr_file_path)
 
-    # Collect phenotypes based on AMR genes found
+    # Determine pathogens based on species list
+    pathogens = []
+    non_pathogens = []
+    for result in bacterial_results:
+        if extract_species(result['#Template']) in species:
+            pathogens.append(result)
+        else:
+            non_pathogens.append(result)
+
     phenotypes = set()
-    for amr_result in amr_results:
+    for amr_result in bacterial_results:
         for gene in gene_data:
             if gene['Gene_accession no.'] == amr_result['#Template']:
                 phenotypes.update(gene['Phenotype'].split(','))
@@ -61,45 +65,45 @@ def create_refined_report(amr_file_path, amr_results, bacterial_results, pathoge
     # AMR Results Section
     report += "Antimicrobial Resistance (AMR) Findings:\n"
     report += "-" * 60 + "\n"
-    if amr_results:
-        for result in amr_results:
-            report += f"Template: {result['#Template']}\n"
-            report += f"Identity: {result['Template_Identity'].strip()}, Coverage: {result['Template_Coverage'].strip()}, Depth: {result['Depth'].strip()}\n\n"
-    else:
-        report += "No AMR genes detected.\n"
-    report += "\n"
+    for result in bacterial_results:
+        report += f"Template: {result['#Template']}\n"
+        report += f"Identity: {result['Template_Identity'].strip()}, Coverage: {result['Template_Coverage'].strip()}, Depth: {result['Depth'].strip()}\n\n"
 
     # Pathogens Found Section
     report += "Identified Pathogens:\n"
     report += "-" * 60 + "\n"
-    if pathogens_found:
-        for pathogen in pathogens_found:
-            report += f"Template: {pathogen['#Template']}\n"
-            report += f"Depth: {pathogen['Depth'].strip()}, Coverage: {pathogen['Template_Coverage'].strip()}, Identity: {pathogen['Template_Identity'].strip()}, Length: {pathogen['Template_length'].strip()}\n\n"
-    else:
-        report += "No pathogens detected.\n"
-    report += "\n"
+    for pathogen in pathogens:
+        report += f"Template: {pathogen['#Template']}\n"
+        report += f"Depth: {pathogen['Depth'].strip()}, Coverage: {pathogen['Template_Coverage'].strip()}, Identity: {pathogen['Template_Identity'].strip()}, Length: {pathogen['Template_length'].strip()}\n\n"
 
     # Non-Pathogens Section
     report += "Non-Pathogenic Bacteria Detected:\n"
     report += "-" * 60 + "\n"
-    if non_pathogens:
-        for non_pathogen in non_pathogens:
-            report += f"Template: {non_pathogen['#Template']}\n"
-            report += f"Depth: {non_pathogen['Depth'].strip()}, Coverage: {non_pathogen['Template_Coverage'].strip()}, Identity: {non_pathogen['Template_Identity'].strip()}, Length: {non_pathogen['Template_length'].strip()}\n\n"
-    else:
-        report += "No non-pathogenic bacteria detected.\n"
-    report += "\n"
+    for non_pathogen in non_pathogens:
+        report += f"Template: {non_pathogen['#Template']}\n"
+        report += f"Depth: {non_pathogen['Depth'].strip()}, Coverage: {non_pathogen['Template_Coverage'].strip()}, Identity: {non_pathogen['Template_Identity'].strip()}, Length: {non_pathogen['Template_length'].strip()}\n\n"
 
-    # Phenotypes Expected Section
+    # Expected Phenotypes Based on AMR Genes Section
     report += "Expected Phenotypes Based on AMR Genes:\n"
     report += "-" * 60 + "\n"
     if phenotypes:
         report += ', '.join(phenotypes) + "\n"
     else:
         report += "No phenotypes expected based on AMR genes.\n"
+    report += "\n"
+
+    # Virulence Factors for Escherichia coli Section
+    if 'Escherichia coli' in species and virulence_file_path:
+        virulence_results = read_tab_separated_file(virulence_file_path)
+        report += "Virulence Factors for Escherichia coli:\n"
+        report += "-" * 60 + "\n"
+        for result in virulence_results:
+            report += str(result) + "\n"
+    else:
+        report += "No virulence factors analysis for Escherichia coli.\n"
 
     return report
+
 def find_max_depth_for_escherichia_coli(bacterial_results):
     max_depth = 0.0
 
