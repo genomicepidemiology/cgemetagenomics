@@ -4,7 +4,7 @@ import subprocess
 
 from cgemetagenomics import kma
 
-def isolate_pipeline(args):
+def metagenomics_pipeline(args):
     os.system('mkdir ' + args.output)
     # Check if kma is installed
     kma.KMARunner(args.input,
