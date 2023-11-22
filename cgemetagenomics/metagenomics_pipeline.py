@@ -41,22 +41,25 @@ def metagenomics_pipeline(args):
     return 'isolate_pipeline'
 
 
-def create_refined_report(amr_file_path, bacterial_results, species, virulence_file_path=None):
-    gene_data = read_tab_separated_file(amr_file_path)
+def create_refined_report(phenotype_file, output, bacterial_results, species):
+    gene_data = read_tab_separated_file(phenotype_file)
+    amr_results = read_tab_separated_file(output + '/amr.res')
 
-    # Determine pathogens based on species list
+    # Classify hits as pathogenic or non-pathogenic based on species list
     pathogens = []
     non_pathogens = []
     for result in bacterial_results:
-        if extract_species(result['#Template']) in species:
+        species_name = extract_species(result.get('#Template', ''))
+        if species_name in species:
             pathogens.append(result)
         else:
             non_pathogens.append(result)
 
+    # Collect phenotypes based on AMR genes found
     phenotypes = set()
-    for amr_result in bacterial_results:
+    for amr_result in amr_results:
         for gene in gene_data:
-            if gene['Gene_accession no.'] == amr_result['#Template']:
+            if gene['Gene_accession no.'] == amr_result.get('#Template'):
                 phenotypes.update(gene['Phenotype'].split(','))
 
     report = "Sample Analysis Report\n"
@@ -65,7 +68,7 @@ def create_refined_report(amr_file_path, bacterial_results, species, virulence_f
     # AMR Results Section
     report += "Antimicrobial Resistance (AMR) Findings:\n"
     report += "-" * 60 + "\n"
-    for result in bacterial_results:
+    for result in amr_results:
         report += f"Template: {result['#Template']}\n"
         report += f"Identity: {result['Template_Identity'].strip()}, Coverage: {result['Template_Coverage'].strip()}, Depth: {result['Depth'].strip()}\n\n"
 
@@ -93,8 +96,8 @@ def create_refined_report(amr_file_path, bacterial_results, species, virulence_f
     report += "\n"
 
     # Virulence Factors for Escherichia coli Section
-    if 'Escherichia coli' in species and virulence_file_path:
-        virulence_results = read_tab_separated_file(virulence_file_path)
+    if 'Escherichia coli' in species:
+        virulence_results = read_tab_separated_file(output + '/virulence.res')
         report += "Virulence Factors for Escherichia coli:\n"
         report += "-" * 60 + "\n"
         for result in virulence_results:
@@ -103,7 +106,6 @@ def create_refined_report(amr_file_path, bacterial_results, species, virulence_f
         report += "No virulence factors analysis for Escherichia coli.\n"
 
     return report
-
 def find_max_depth_for_escherichia_coli(bacterial_results):
     max_depth = 0.0
 
