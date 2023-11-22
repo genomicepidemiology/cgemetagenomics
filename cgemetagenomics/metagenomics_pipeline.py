@@ -8,7 +8,7 @@ from cgemetagenomics import kma
 def metagenomics_pipeline(args):
     os.system('mkdir ' + args.output)
     # Check if kma is installed
-    strains = load_pathogen_strains(args.db_dir + '/pathogen_strains.list')
+    species = load_pathogen_species(args.db_dir + '/pathogen_strains.list')
     kma.KMARunner(args.input,
               args.output + "/bacteria_alignment",
               args.db_dir + '/bac_db/bac_db',
@@ -16,7 +16,8 @@ def metagenomics_pipeline(args):
 
     baterial_results = read_tab_separated_file(args.output + "/bacteria_alignment.res")
 
-    print (baterial_results)
+    filter_and_print_hits(baterial_results, species)
+
     sys.exit()
 
     kma.KMARunner(args.input,
@@ -31,7 +32,18 @@ def metagenomics_pipeline(args):
 
     return 'isolate_pipeline'
 
-def load_pathogen_strains(strain_file):
+def filter_and_print_hits(bacterial_results, species_list):
+    for hit in bacterial_results:
+        # Extract species name from the '#Template' field
+        template = hit['#Template']
+        species_name = ' '.join(template.split()[1:3])
+        print (species_name)
+
+        # Check if the species name is in the list of species
+        if species_name in species_list:
+            print (hit, 'found')
+
+def load_pathogen_species(strain_file):
     strains = []
     with open(strain_file, 'r') as file:
         for line in file:
