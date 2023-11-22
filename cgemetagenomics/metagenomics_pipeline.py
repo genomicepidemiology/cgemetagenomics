@@ -9,7 +9,8 @@ def metagenomics_pipeline(args):
     os.system('mkdir ' + args.output)
     # Check if kma is installed
 
-    load_pathogen_strains(args.db_dir + '/pathogen_strains.list')
+    strains = load_pathogen_strains(args.db_dir + '/pathogen_strains.list')
+    print (strains)
     sys.exit()
     kma.KMARunner(args.input,
               args.output + "/bacteria_alignment",
@@ -34,7 +35,10 @@ def load_pathogen_strains(strain_file):
     with open(strain_file, 'r') as file:
         for line in file:
             line = line.strip().split('\t')
-            print (line)
+            species = line[1].split(' ')[0] + ' ' + line[1].split(' ')[1]
+            strains.append(species)
+    return strains
+
 
 def read_tab_separated_file(file_path):
     results = []
