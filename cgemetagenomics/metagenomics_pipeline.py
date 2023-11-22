@@ -34,26 +34,51 @@ def metagenomics_pipeline(args):
 
     amr_results = read_tab_separated_file(args.output + "/amr.res")
 
-    report = create_report(amr_results, bacterial_results, pathogens_found)
+    report = create_enhanced_report(amr_results, bacterial_results, pathogens_found)
     print (report)
 
     #Parse bacterial alignment and output those above a set of thresholds
 
     return 'isolate_pipeline'
 
-def create_report(amr_results, bacterial_results, pathogens_found):
-    report = "AMR Results:\n"
-    report += "\n".join(str(result) for result in amr_results) + "\n\n"
+def create_enhanced_report(amr_results, pathogens_found, non_pathogens):
+    report = "Sample Analysis Report\n"
+    report += "="*60 + "\n"
 
-    report += "Pathogens Found:\n"
-    report += "\n".join(str(pathogen) for pathogen in pathogens_found) + "\n\n"
+    # AMR Results Section
+    report += "Antimicrobial Resistance (AMR) Findings:\n"
+    report += "-"*60 + "\n"
+    if amr_results:
+        for result in amr_results:
+            report += f"Template: {result['#Template']}\n"
+            report += f"Score: {result['Score'].strip()}, Depth: {result['Depth'].strip()}, p-value: {result['p_value']}\n"
+            report += "...\n"  # Add other relevant fields here
+    else:
+        report += "No AMR genes detected.\n"
+    report += "\n"
 
-    non_pathogens = [result for result in bacterial_results if result not in pathogens_found]
-    report += "Non-Pathogens:\n"
-    report += "\n".join(str(non_pathogen) for non_pathogen in non_pathogens)
+    # Pathogens Found Section
+    report += "Identified Pathogens:\n"
+    report += "-"*60 + "\n"
+    if pathogens_found:
+        for pathogen in pathogens_found:
+            report += f"Template: {pathogen['#Template']}\n"
+            report += "...\n"  # Add other relevant fields here
+    else:
+        report += "No pathogens detected.\n"
+    report += "\n"
+
+    # Non-Pathogens Section
+    report += "Non-Pathogenic Bacteria Detected:\n"
+    report += "-"*60 + "\n"
+    if non_pathogens:
+        for non_pathogen in non_pathogens:
+            report += f"Template: {non_pathogen['#Template']}\n"
+            report += "...\n"  # Add other relevant fields here
+    else:
+        report += "No non-pathogenic bacteria detected.\n"
 
     return report
-
 def find_max_depth_for_escherichia_coli(bacterial_results):
     max_depth = 0.0
 
