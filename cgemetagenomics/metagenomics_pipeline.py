@@ -77,7 +77,8 @@ def create_refined_report(amr_results, pathogens_found, non_pathogens):
     else:
         report += "No non-pathogenic bacteria detected.\n"
 
-    return reportdef find_max_depth_for_escherichia_coli(bacterial_results):
+    return report
+def find_max_depth_for_escherichia_coli(bacterial_results):
     max_depth = 0.0
 
     for hit in bacterial_results:
