@@ -33,7 +33,7 @@ def metagenomics_pipeline(args):
 
     amr_results = read_tab_separated_file(args.output + "/amr.res")
 
-    report = create_refined_report(args.db_dir + '/phenotypes.txt', amr_results, bacterial_results, pathogens_found)
+    report = create_refined_report(args.db_dir + '/phenotypes.txt', args.output, bacterial_results)
     print (report)
 
     #Parse bacterial alignment and output those above a set of thresholds
@@ -121,17 +121,6 @@ def load_tsv(file_path):
         reader = csv.DictReader(file, delimiter='\t')
         return list(reader)
 
-def filter_and_print_hits(bacterial_results, species_list):
-    pathogens_found = []
-    for hit in bacterial_results:
-        # Extract species name from the '#Template' field
-        template = hit['#Template']
-        species_name = ' '.join(template.split()[1:3])
-
-        # Check if the species name is in the list of species
-        if species_name in species_list:
-            pathogens_found.append(species_name)
-    return pathogens_found
 
 def load_pathogen_species(strain_file):
     strains = []
@@ -144,9 +133,9 @@ def load_pathogen_species(strain_file):
 
 
 def read_tab_separated_file(file_path):
-    results = []
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file, delimiter='\t')
-        for row in reader:
-            results.append(row)
-    return results
+        return list(reader)
+
+def extract_species(template_str):
+    return ' '.join(template_str.split()[1:3])
