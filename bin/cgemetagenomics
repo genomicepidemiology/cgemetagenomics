@@ -24,7 +24,7 @@ def main():
                         default=None, help='Folder with many smaller files of Nanopore reads.'
                                          'These will be merged into one file and analyzed.')
 
-    parser.add_argument('-db', action="store", type=str, dest='db_dir', help='Path to the folder with cge reference databases.'
+    parser.add_argument('-db_dir', action="store", default = None, dest='db_dir', help='Path to the folder with cge reference databases.'
                                       'This folder should contain a bac_db, plasmid_db, resfinder_db and virulence_db.')
     parser.add_argument('-o', action="store", type=str, dest='output', help='Output directory')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)

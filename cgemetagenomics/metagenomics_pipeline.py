@@ -6,10 +6,11 @@ import csv
 from cgemetagenomics import kma
 
 def metagenomics_pipeline(args):
-    #if not os.path.exists('/opt/cge/cge_db'):
-    #    sys.exit('Please install the cge_db. It should be located in /opt/cge/cge_db')
-    #else:
-    #    args.db_dir = '/opt/cge/cge_db'
+    if args.db_dir is None:
+        if not os.path.exists('/opt/cge/cge_db'):
+            sys.exit('Please install the cge_db. It should be located in /opt/cge/cge_db')
+        else:
+            args.db_dir = '/opt/cge/cge_db'
     os.system('mkdir ' + args.output)
     # Check if kma is installed
     species = load_pathogen_species(args.db_dir + '/pathogen_strains.list')
