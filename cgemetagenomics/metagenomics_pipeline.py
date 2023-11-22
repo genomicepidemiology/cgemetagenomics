@@ -8,10 +8,7 @@ from cgemetagenomics import kma
 def metagenomics_pipeline(args):
     os.system('mkdir ' + args.output)
     # Check if kma is installed
-
     strains = load_pathogen_strains(args.db_dir + '/pathogen_strains.list')
-    print (strains)
-    sys.exit()
     kma.KMARunner(args.input,
               args.output + "/bacteria_alignment",
               args.db_dir + '/bac_db/bac_db',
@@ -19,12 +16,16 @@ def metagenomics_pipeline(args):
 
     baterial_results = read_tab_separated_file(args.output + "/bacteria_alignment.res")
 
+    print (baterial_results)
+    sys.exit()
+
     kma.KMARunner(args.input,
                   args.output + "/amr",
                   args.db_dir + '/resfinder_db/resfinder_db',
                   "-ont -md 3 -mem_mode -t 8").run()
 
     amr_results = read_tab_separated_file(args.output + "/amr.res")
+
 
     #Parse bacterial alignment and output those above a set of thresholds
 
