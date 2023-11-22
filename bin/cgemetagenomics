@@ -12,7 +12,7 @@ from cgemetagenomics import version
 __author__ = "Malte B. Hallgren"
 __version__ = version.__version__
 
-from cgemetagenomics import isolate_pipeline
+from cgemetagenomics import metagenomics_pipeline
 
 def main():
     description = 'CGE-isolate. General bacterial isolate pipeline'
