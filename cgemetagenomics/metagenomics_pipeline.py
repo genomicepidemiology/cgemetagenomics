@@ -10,7 +10,7 @@ def metagenomics_pipeline(args):
     kma.KMARunner(args.input,
               args.output + "/bacteria_alignment",
               args.db_dir + '/bac_db/bac_db',
-              "-ID 25 -ont -1t1 -mem_mode -t 8").run()
+              "-ID 25 -md 1 -ont -1t1 -mem_mode -t 8").run()
 
     #Parse bacterial alignment and output those above a set of thresholds
 
