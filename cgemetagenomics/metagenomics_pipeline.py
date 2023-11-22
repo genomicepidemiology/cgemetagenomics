@@ -34,16 +34,26 @@ def metagenomics_pipeline(args):
 
     amr_results = read_tab_separated_file(args.output + "/amr.res")
 
-    report = create_refined_report(amr_results, bacterial_results, pathogens_found)
+    report = create_refined_report(args.db_dir + 'phenotypes.txt', amr_results, bacterial_results, pathogens_found)
     print (report)
 
     #Parse bacterial alignment and output those above a set of thresholds
 
     return 'isolate_pipeline'
 
-def create_refined_report(amr_results, bacterial_results, pathogens_found):
+def create_refined_report(amr_file_path, amr_results, bacterial_results, pathogens_found):
+    # Load the TSV file for gene data
+    gene_data = load_tsv(amr_file_path)
+
     # Determine non-pathogens by excluding pathogens from all bacterial results
     non_pathogens = [result for result in bacterial_results if result not in pathogens_found]
+
+    # Collect phenotypes based on AMR genes found
+    phenotypes = set()
+    for amr_result in amr_results:
+        for gene in gene_data:
+            if gene['Gene_accession no.'] == amr_result['#Template']:
+                phenotypes.update(gene['Phenotype'].split(','))
 
     report = "Sample Analysis Report\n"
     report += "=" * 60 + "\n"
@@ -79,6 +89,15 @@ def create_refined_report(amr_results, bacterial_results, pathogens_found):
             report += f"Depth: {non_pathogen['Depth'].strip()}, Coverage: {non_pathogen['Template_Coverage'].strip()}, Identity: {non_pathogen['Template_Identity'].strip()}, Length: {non_pathogen['Template_length'].strip()}\n\n"
     else:
         report += "No non-pathogenic bacteria detected.\n"
+    report += "\n"
+
+    # Phenotypes Expected Section
+    report += "Expected Phenotypes Based on AMR Genes:\n"
+    report += "-" * 60 + "\n"
+    if phenotypes:
+        report += ', '.join(phenotypes) + "\n"
+    else:
+        report += "No phenotypes expected based on AMR genes.\n"
 
     return report
 def find_max_depth_for_escherichia_coli(bacterial_results):
@@ -92,6 +111,11 @@ def find_max_depth_for_escherichia_coli(bacterial_results):
                 max_depth = depth
 
     return max_depth
+
+def load_tsv(file_path):
+    with open(file_path, 'r') as file:
+        reader = csv.DictReader(file, delimiter='\t')
+        return list(reader)
 
 def filter_and_print_hits(bacterial_results, species_list):
     pathogens_found = []
