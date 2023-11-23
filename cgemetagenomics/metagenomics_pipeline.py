@@ -6,6 +6,13 @@ import csv
 from cgemetagenomics import kma
 
 def metagenomics_pipeline(args):
+    if args.folder is not None:
+        if args.name is None:
+            sys.exit('Please provide a name for the merged file')
+        else:
+            merge_fastq_files_unix(args.folder, args.name)
+            args.input = os.path.join(os.path.expanduser('~'), args.name + '.fastq.gz')
+            # args.output = os.path.join(os.path.expanduser('~'), args.name)
     if args.db_dir is None:
         if not os.path.exists('/opt/cge/cge_db'):
             sys.exit('Please install the cge_db. It should be located in /opt/cge/cge_db')
@@ -44,6 +51,27 @@ def metagenomics_pipeline(args):
 
     return 'isolate_pipeline'
 
+def merge_fastq_files_unix(source_directory, output_name):
+    """
+    Merge all fastq.gz files in the given directory using Unix commands and save the output with the specified name in the home directory.
+
+    Args:
+    source_directory (str): Path to the directory containing fastq.gz files.
+    output_name (str): Name for the output file.
+    """
+    # Home directory path
+    home_directory = os.path.expanduser('~')
+
+    # Output file path with the specified name
+    output_file = os.path.join(home_directory, f'{output_name}.fastq.gz')
+
+    # Creating the Unix command for concatenation
+    cmd = f'cat {source_directory}/*.fastq.gz > {output_file}'
+
+    # Executing the command
+    subprocess.run(cmd, shell=True, check=True)
+
+    print(f"All files merged into {output_file}")
 
 def create_refined_report(phenotype_file, output, bacterial_results, species):
     gene_data = read_tab_separated_file(phenotype_file)
