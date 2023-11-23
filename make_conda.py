@@ -31,7 +31,7 @@ data = {
     },
     "about": {
         "home": "https://github.com/genomicepidemiology/cgemetagenomics",
-        "summary": "Kmergenetyper test.",
+        "summary": "CGE metagenomics pipeline",
         "license": "Apache-2.0"
     }
 }
