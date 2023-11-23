@@ -1,16 +1,46 @@
-# cgemetagenomics (k-mer gene typer)
+# cgemetagenomics
 
 # Installation
 
-cgemetagenomics typer requires kma (>=1.4.0) to be installed and usable directly from path (i.e. $kma).
-This can be done by installing kma from source or using conda:
+The following Conda channels are required:
 
-`conda create -n cgemetagenomics -f cgemetagenomics.yml`
+`conda config --add channels defaults`
 
-`conda activate cgemetagenomics`
+`conda config --add channels bioconda`
 
-`pip install cgemetagenomics`
+`conda config --add channels conda-forge`
+
+Mamba can be installed with:
+
+`conda install -c conda-forge mamba`
+
+For a fast install of cgemetagenomics, use mamba:
+`mamba install -c genomicepidemiology cgemetagenomics`
+
+
+# Datebase
+
+Download the cge_db database:
+
+`wget https://cge.food.dtu.dk/services/MINTyper/cge_db.tar.gz`
+
+`tar -xvzf cge_db.tar.gz`
+
+`sudo mkdir -m 777 /opt/cge`
+
+`mv cge_db /opt/cge/.`
+
 
 # Usage
 
+Standard Usage:
+`cgemetagenomics -i <input_file> -o <output_file>`
+
+If you have a folder of many fastq.gz files:
+`cgemetagenomics -f <input_folder> -name <sample_name> -o <output_folder>`
+
+If your cge_db is not stored in /opt/cge/cge_db:
+`cgemetagenomics -i <input_file> -o <output_file> -db_dir <path_to_cge_db>`
+
+Help Message:
 `cgemetagenomics -h`
