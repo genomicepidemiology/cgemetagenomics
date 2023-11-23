@@ -28,7 +28,7 @@ Download the cge_db database:
 
 `sudo mkdir -m 777 /opt/cge`
 
-`mv cge_db /opt/cge/.`
+`mv cge_db /opt/cge/cge_db`
 
 
 # Usage
