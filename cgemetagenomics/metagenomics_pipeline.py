@@ -5,51 +5,61 @@ import csv
 
 from cgemetagenomics import kma
 
+
 def metagenomics_pipeline(args):
-    if args.folder is not None:
-        if args.name is None:
-            sys.exit('Please provide a name for the merged file')
-        else:
-            merge_fastq_files_unix(args.folder, args.name)
-            args.input = os.path.join(os.path.expanduser('~'), args.name + '.fastq.gz')
-            # args.output = os.path.join(os.path.expanduser('~'), args.name)
+    print("Starting the metagenomics pipeline...")
+
+    # Database directory setup
     if args.db_dir is None:
-        if not os.path.exists('/opt/cge/cge_db'):
-            sys.exit('Please install the cge_db. It should be located in /opt/cge/cge_db')
+        if not os.path.exists('/var/lib/cge/database/cge_db'):
+            sys.exit('Please install the cge_db. It should be located in /var/lib/cge/database/cge_db')
         else:
-            args.db_dir = '/opt/cge/cge_db'
-    os.system('mkdir ' + args.output)
-    # Check if kma is installed
+            args.db_dir = '/var/lib/cge/database/cge_db'
+            print(f"Using CGE database directory: {args.db_dir}")
+
+    # Create output directory
+    print(f"Creating output directory: {args.output}")
+    os.system('mkdir -p ' + args.output)
+
+    # Load pathogen species
+    print("Loading pathogen species...")
     species = load_pathogen_species(args.db_dir + '/pathogen_strains.list')
+
+    # Run KMA for bacteria alignment
+    print("Running KMA for bacteria alignment...")
     kma.KMARunner(args.input,
-              args.output + "/bacteria_alignment",
-              args.db_dir + '/bac_db/bac_db',
-              "-ID 25 -md 1 -ont -1t1 -mem_mode -t 8").run()
+                  args.output + "/bacteria_alignment",
+                  args.db_dir + '/bac_db/bac_db',
+                  "-ID 25 -md 1 -ont -1t1 -mem_mode -t 8").run()
 
     bacterial_results = read_tab_separated_file(args.output + "/bacteria_alignment.res")
 
     for hit in bacterial_results:
         if 'Escherichia coli' in hit['#Template']:
             e_coli_depth = find_max_depth_for_escherichia_coli(bacterial_results)
-            # run virulence finder
+            print(f"Escherichia coli detected with depth {e_coli_depth}. Running virulence finder...")
             kma.KMARunner(args.input,
                           args.output + "/virulence",
                           args.db_dir + '/virulence_db/virulence_db',
                           "-ont -md {} -mem_mode -t 8".format(e_coli_depth / 2)).run()
             break
 
+    # Run KMA for AMR
+    print("Running KMA for AMR...")
     kma.KMARunner(args.input,
                   args.output + "/amr",
                   args.db_dir + '/resfinder_db/resfinder_db',
                   "-ont -md 3 -mem_mode -t 8").run()
 
+    # Generate report
+    print("Creating refined report...")
     report = create_refined_report(args.db_dir + '/phenotypes.txt', args.output, bacterial_results, species)
     with open(args.output + '/report.txt', 'w') as report_file:
         report_file.write(report)
 
-    #Parse bacterial alignment and output those above a set of thresholds
+    print("Metagenomics pipeline completed successfully. Report generated and stored in " + args.output + '/report.txt')
+    return 'metagenomics_pipeline'
 
-    return 'isolate_pipeline'
 
 def merge_fastq_files_unix(source_directory, output_name):
     """

@@ -23,21 +23,18 @@ For a fast install of cgemetagenomics, use mamba:
 Download the cge_db database:
 
 `wget https://cge.food.dtu.dk/services/MINTyper/cge_db.tar.gz`
-
 `tar -xvzf cge_db.tar.gz`
 
-`sudo mkdir -m 777 /opt/cge`
+`sudo mkdir -m 777 /var/lib/cge`
+`sudo mkdir -m 777 /var/lib/cge/database`
+`mv cge_db /var/lib/cge/database/cge_db`
 
-`mv cge_db /opt/cge/cge_db`
 
 
 # Usage
 
 Standard Usage:
 `cgemetagenomics -i <input_file> -o <output_file>`
-
-If you have a folder of many fastq.gz files:
-`cgemetagenomics -f <input_folder> -name <sample_name> -o <output_folder>`
 
 If your cge_db is not stored in /opt/cge/cge_db:
 `cgemetagenomics -i <input_file> -o <output_file> -db_dir <path_to_cge_db>`
