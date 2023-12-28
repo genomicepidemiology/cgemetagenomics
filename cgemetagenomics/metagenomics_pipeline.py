@@ -5,7 +5,6 @@ import csv
 
 from cgemetagenomics import kma
 
-
 def metagenomics_pipeline(args):
     print("Starting the metagenomics pipeline...")
 
