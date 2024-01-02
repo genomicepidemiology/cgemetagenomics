@@ -60,7 +60,7 @@ def metagenomics_pipeline(args):
 
     # Generate report
     print("Creating refined report...")
-    report = create_refined_report(args.db_dir + '/phenotypes.txt', args.output, bacterial_results, species)
+    report = create_refined_report(args.db_dir + '/phenotypes.txt', args.output, bacterial_results, species, args.name)
     with open(args.output + '/report.txt', 'w') as report_file:
         report_file.write(report)
 
@@ -90,7 +90,7 @@ def merge_fastq_files_unix(source_directory, output_name):
 
     print(f"All files merged into {output_file}")
 
-def create_refined_report(phenotype_file, output, bacterial_results, species):
+def create_refined_report(phenotype_file, output, bacterial_results, species, name):
     gene_data = read_tab_separated_file(phenotype_file)
     amr_results = read_tab_separated_file(output + '/amr.res')
     e_coli_found = any(extract_species(result.get('#Template', '')) == 'Escherichia coli' for result in bacterial_results)
@@ -110,7 +110,7 @@ def create_refined_report(phenotype_file, output, bacterial_results, species):
             if gene['Gene_accession no.'] == amr_result.get('#Template'):
                 phenotypes.update(gene['Phenotype'].split(','))
 
-    report = "Sample Analysis Report\n"
+    report = "Analysis Report: {}\n".format(name)
     report += "=" * 60 + "\n"
 
     # AMR Results Section
