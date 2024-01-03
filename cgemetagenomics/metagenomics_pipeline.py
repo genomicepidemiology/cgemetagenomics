@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import csv
+import shutil
 
 from cgemetagenomics import kma
 
@@ -28,6 +29,10 @@ def metagenomics_pipeline(args):
     print(f"Creating output directory: {args.output}")
     os.system('mkdir -p ' + args.output)
 
+    # Create output directory
+    # Copy the input FASTQ file to the output directory
+    print(f"Copying input FASTQ file to the output directory: {args.input} -> {args.output}")
+    shutil.copy(args.input, args.output)
     # Load pathogen species
     print("Loading pathogen species...")
     species = load_pathogen_species(args.db_dir + '/pathogen_strains.list')
