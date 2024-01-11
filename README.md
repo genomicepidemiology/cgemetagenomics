@@ -1,5 +1,7 @@
 # cgemetagenomics
 
+This tool was developed for analysing stool/microbiome sample where microbes and AMR might be found.
+
 # Installation
 
 The following Conda channels are required:
