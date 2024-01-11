@@ -22,7 +22,7 @@ For a fast install of cgemetagenomics, use mamba:
 
 Download the cge_db database:
 
-`wget https://cge.food.dtu.dk/services/MINTyper/cge_db.tar.gz`
+`wget https://cge.food.dtu.dk/services/great-life/cge_db.tar.gz`
 
 `tar -xvzf cge_db.tar.gz`
 
